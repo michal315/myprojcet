@@ -1,58 +1,94 @@
-#Homework 1 - Heuristic Search
-
-The PDF for the assignment can found in docs/AI_HW1.pdf
-
-Library documentation can be found in ways/README.md
-
-##Directory Structure
-
-Add your source files here, and insert calls for the functions in them inside main.py.
-
-You can add directories for 3rd party libraries. Remember to declare `dir your_directory` in docs/dependencies.txt.
-
-
-__init__.py: A hint for the interpreter - ignore this file
-
-main.py: Minimal interface to the command line: `$ python main.py [args]`
-
-stats.py: Gather and print statistics: `$ python stats.py`
-
-___
 ways/
-Primary library. Basic usage: 
+Library for handling road map.
+
+Most of the work is done with one function, `load_map_from_csv`, and three classes: `Junction`, `Link` and `Roads`.
+
+##Functions
+
+load_map_from_csv (start=0, count=sys.maxint
+The workhorse of the library.
+
+The basic usage is simple:
 ```python
 from ways import load_map_from_csv
 roads = load_map_from_csv()
-````
-ways/README.md: Library documentation
+# work with road
+```
+This function takes some time to finish. To test your code on smaller maps, use `count`:
+```python
+roads = load_map_from_csv(count=10000)
+```
 
-ways/__init__.py: Defines the functions accessible using `import ways`
+And you can add `start` argument to work in more "interesting" regions:
+```python
+roads = load_map_from_csv(start=100000, count=10000)
+```
 
-ways/graph.py: Code to load the map from the database
+##Classes
+###tl;dr
+`Roads` is a mapping from integers (Junction index) to `Junction`, which has a list of `links` in it.
+`Link_traffic_params` contains some deterministically-generated parameters for the `Link` speed history.
 
-ways/info.py: Constants
+###Details
+`Link`, `Junction` and `Link_traffic_params` are `namdetuple`
+(https://docs.python.org/2/library/collections.html#collections.namedtuple) - which means they are tuple-like and immutable.
 
-ways/tools.py: Arbitrary, possibly useful tools
+####`Junction`
 
-ways/draw.py: Helper file for drawing paths using matplotlib
+* `index` : `int` Junction index
+* `lat` : `float` Latitude
+* `lon` : `float` Longitude
+* `links` : `list(Link)`
 
-___
+####`Link`
 
-docs/
-Documentation
+* `source` : `int` Junction index
+* `target` : `int` Junction index
+* `distance` : `float` Meters
+* `highway_type` : `int` See `info.py`
+* `link_params`: `Namedtuple`
 
-[`docs/AI_HW1.pdf`](docs/AI_HW1.pdf) Assignment file
+####`Link_traffic_params`
+	Don't worry about it.
 
-[`docs/dependencies.txt`](docs/dependencies.txt) Declarations of dependencies in 3rd party libraries. For example:
+####`Roads`)
+The graph is a dictionary mapping Junction index to `Junction`, with some additional methods.
 
-> pip numpy
->
+This is the return type of `load_map_from_csv`.
 
-___
-db/
-Database. Do not change.
+#####Methods
+All the methods for [`dict`](https://docs.python.org/2/library/stdtypes.html#mapping-types-dict) are available here too. For example, `roads[15]` is the Junction whose index is 15.
 
-db/israel.csv Roads description. primary database file
-___		
-results/
-Put your experiment results (text and images) here
+* `iterlinks(self) -> iterable(Link)`
+   Chains all the links in the graph. ```for link in road.iterlinks(): ...```
+
+* `junctions(self) -> list(Junction)`
+   Iterate over the junctions in the road. Returns the values in the dictionary.
+
+* `link_speed(self, link)`
+   Returns the speed for the link (in km/h), based on  `self.generation`.
+
+* `link_speed_history(self, link,time)`
+   Returns the speed for the link (in km/h), based on some parameters which define the history of the traffic in the link at time `time` (in minutes, accepts non-integers)
+
+* `realtime_link_speed(self, link)`
+   Returns the speed for the link (in km/h), based on the history, time, and location (deterministically).
+
+
+#####Fields
+
+* `generation` : `int`
+
+Represents the "sanpshot" of the speeds in the graph. This field is used by `link_speed` to decide the speed of a link for a specific generation.
+
+   You can write and read freely to/from this field. 
+
+
+* `base_traffic` : `list`
+
+Represents some base traffic pattern which applies to all links: traffic peaks at ~8 and ~17. Do not modify.
+
+* `mean_lat_lon` : `(float,float)`
+
+Represents the mean latitude and longitude of the map.
+You may change this field, but it would probably do more harm than good.
