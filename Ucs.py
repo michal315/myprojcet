@@ -34,8 +34,8 @@ def writeTotalCostFromSourceToDest(total_cost):
         writer = csv.writer(csv_file, delimiter=',')
         writer.writerow(total_cost)
 
-
-def calculateCostFunctionUcs(distanceFromNode, typeOfRoad):
+#calcRoadCost may be a more propier name. We're alreay in the "Ucs" context, the same goes for "Function" (verbs indicate that it's a function)
+def calculateCostFunctionUcs(distanceFromNode, typeOfRoad): 
     maxSpeed = max(info.SPEED_RANGES[typeOfRoad])
     cost = (1000 * distanceFromNode) / maxSpeed
     return cost
@@ -93,14 +93,15 @@ def ucs_rout(init_state, goal_state):
     frontier.append(node)
     closed_list = set()
     while frontier:
-        if len(closed_list) % 1000 == 0:
-            x = 2
+        if len(closed_list) % 1000 == 0: #What is that used for?
+            x = 2                        #What is that used for?
         node = frontier.pop()
         if node.state == goal_state:
             return node.pathRe()
 
         closed_list.add(node.state)
         # n is neighbors (children) node list
+        # why not calling it neighbors?
         n = expand_junction(myRoads.ROADS, node, calculateCostFunctionUcs)
         for neighbor in n:
             if neighbor.state not in closed_list and neighbor not in frontier:
